@@ -1,28 +1,13 @@
-services:
-  # Backend Server (Next.js API)
-  - type: web
-    name: youtube-transcript-server
-    runtime: docker
-    dockerContext: .
-    dockerfilePath: Dockerfile
-    dockerTarget: server
-    plan: free # Change to starter or higher for disk support
-    envVars:
-      - key: NODE_ENV
-        value: production
-    # persistence: # Uncomment for persistent transcripts (requires Starter plan)
-    #   name: transcripts-data
-    #   mountPath: /app/apps/server/transcripts
-    #   sizeGB: 1
-
-  # Frontend Client (Angular + Nginx)
-  - type: web
-    name: youtube-transcript-client
-    runtime: docker
-    dockerContext: .
-    dockerfilePath: Dockerfile
-    dockerTarget: client
-    plan: free
-    envVars:
-      - key: BACKEND_URL
-        value: https://youtube-transcript-server.onrender.com
+# Frontend Client (Angular + Nginx)
+- type: web
+  name: youtube-transcript-client
+  runtime: docker
+  dockerContext: .
+  dockerfilePath: Dockerfile
+  dockerTarget: client
+  plan: free
+  envVars:
+    - key: BACKEND_URL
+      value: https://youtube-transcript-server.onrender.com
+    - key: PORT
+      value: 80 # Render will override this, but it helps local debugging
