@@ -1,0 +1,59 @@
+<div class="app-container">
+    <header>
+        <h1>YouTube Transcript Fetcher</h1>
+    </header>
+
+    <main>
+        <div class="input-section">
+            <div class="form-group">
+                <input type="text" id="url" [ngModel]="youtubeUrl()" (ngModelChange)="youtubeUrl.set($event)"
+                    placeholder="Paste YouTube video link here..." [disabled]="status() === 'loading'">
+                <button (click)="fetchTranscript()" [disabled]="status() === 'loading'">
+                    {{ status() === 'loading' ? 'Processing...' : 'Get Transcript' }}
+                </button>
+            </div>
+
+            @if (status() !== 'idle') {
+            <div class="status-box" [ngClass]="status()">
+                <p>{{ message() }}</p>
+                @if (status() === 'success' && fileName()) {
+                <p class="file-name">Saved as: <span>{{ fileName() }}</span></p>
+                }
+            </div>
+            }
+        </div>
+
+        <div class="content-grid" [class.has-content]="videoId() || segments().length > 0">
+            <div class="video-section card" [class.hidden]="!videoId()">
+                <div class="video-wrapper">
+                    <div id="youtube-player"></div>
+                </div>
+            </div>
+
+            @if (segments().length > 0) {
+            <div class="transcript-section card">
+                <div class="transcript-header">
+                    <h3>Transcript</h3>
+                    <button class="copy-button" (click)="copyToClipboard()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        Copy
+                    </button>
+                </div>
+                <div class="transcript-content">
+                    @for (segment of segments(); track $index; let i = $index) {
+                    <p [id]="'segment-' + i" [class.active]="activeSegmentIndex() === i" (click)="seekTo(segment.start)"
+                        tabindex="0" (keydown.enter)="seekTo(segment.start)"
+                        (keydown.space)="seekTo(segment.start); $event.preventDefault()">
+                        {{ segment.text }}
+                    </p>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+    </main>
+</div>
