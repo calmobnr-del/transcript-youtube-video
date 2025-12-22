@@ -25,9 +25,12 @@ export class App {
   youtubeUrl = signal('');
   status = signal<'idle' | 'loading' | 'success' | 'error'>('idle');
   message = signal('');
+  title = signal('');
   fileName = signal('');
   segments = signal<TranscriptSegment[]>([]);
   currentTime = signal(0);
+  saveStatus = signal<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  saveMessage = signal('');
 
   activeSegmentIndex = computed(() => {
     const time = this.currentTime();
@@ -132,8 +135,9 @@ export class App {
     this.status.set('loading');
     this.message.set('Fetching transcript...');
     this.segments.set([]);
+    this.saveStatus.set('idle');
 
-    this.http.post<{ message: string; fileName: string; transcript: string; segments: TranscriptSegment[] }>('/api/transcript', { url })
+    this.http.get<{ message: string; title: string; transcript: string; segments: TranscriptSegment[] }>(`/api/transcript?url=${encodeURIComponent(url)}`)
       .pipe(
         catchError((err: { error?: { message?: string } }) => {
           this.status.set('error');
@@ -145,8 +149,43 @@ export class App {
         if (res) {
           this.status.set('success');
           this.message.set(res.message);
-          this.fileName.set(res.fileName);
+          this.title.set(res.title);
           this.segments.set(res.segments);
+        }
+      });
+  }
+
+  saveTranscript() {
+    const url = this.youtubeUrl();
+    const title = this.title();
+    const transcript = this.segments().map(s => s.text).join('\n');
+
+    if (!url || !title || !transcript) {
+      this.saveStatus.set('error');
+      this.saveMessage.set('No transcript to save');
+      return;
+    }
+
+    this.saveStatus.set('saving');
+    this.saveMessage.set('Saving transcript...');
+
+    this.http.post<{ message: string; fileName: string }>('/api/transcript', { url, title, transcript })
+      .pipe(
+        catchError((err: { error?: { message?: string } }) => {
+          this.saveStatus.set('error');
+          this.saveMessage.set(err.error?.message || 'Failed to save transcript');
+          return of(null);
+        })
+      )
+      .subscribe((res) => {
+        if (res) {
+          this.saveStatus.set('saved');
+          this.saveMessage.set(res.message);
+          this.fileName.set(res.fileName);
+          setTimeout(() => {
+            this.saveStatus.set('idle');
+            this.saveMessage.set('');
+          }, 3000);
         }
       });
   }
