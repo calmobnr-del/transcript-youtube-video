@@ -1,5 +1,5 @@
 services:
-  server:
+  youtube-transcript-server:
     build:
       context: .
       target: server
@@ -9,12 +9,12 @@ services:
       - ./transcripts:/app/apps/server/transcripts
     restart: unless-stopped
 
-  client:
+  youtube-transcript-client:
     build:
       context: .
       target: client
     ports:
       - "4200:80"
     depends_on:
-      - server
+      - youtube-transcript-server
     restart: unless-stopped
