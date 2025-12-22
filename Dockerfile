@@ -37,7 +37,7 @@ CMD ["node", "apps/server/server.js"]
 FROM nginx:alpine AS client
 ENV PORT=80
 ENV BACKEND_URL=http://youtube-transcript-server:3000
-ENV NGINX_ENVSUBST_FILTER="PORT BACKEND_URL"
+ENV NGINX_ENVSUBST_FILTER=PORT:BACKEND_URL
 # Copy built Angular files to Nginx html directory
 COPY --from=builder /app/dist/apps/client/browser /usr/share/nginx/html
 # Copy custom Nginx configuration template for dynamic port binding
