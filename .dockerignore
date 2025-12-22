@@ -1,0 +1,14 @@
+node_modules
+.nx
+.angular
+dist
+.next
+out
+*.log
+.git
+.vscode
+.editorconfig
+.prettierignore
+.prettierrc
+README.md
+transcripts
