@@ -19,6 +19,7 @@ RUN npx nx build client
 FROM node:20-alpine AS server
 WORKDIR /app
 ENV NODE_ENV=production
+ENV PORT=3000
 
 # Copy standalone build assets
 COPY --from=builder /app/apps/server/.next/standalone ./
@@ -34,10 +35,11 @@ CMD ["node", "apps/server/server.js"]
 
 # --- Stage 4: Client Runtime (Nginx) ---
 FROM nginx:alpine AS client
+ENV PORT=80
 # Copy built Angular files to Nginx html directory
 COPY --from=builder /app/dist/apps/client/browser /usr/share/nginx/html
-# Copy custom Nginx configuration for SPA routing and proxying
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy custom Nginx configuration template for dynamic port binding
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
