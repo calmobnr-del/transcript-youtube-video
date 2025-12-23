@@ -6,7 +6,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./transcripts:/app/apps/server/transcripts
+      - ./transcripts:/app/transcripts
     restart: unless-stopped
 
   youtube-transcript-client:

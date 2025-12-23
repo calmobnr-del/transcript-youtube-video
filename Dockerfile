@@ -10,28 +10,28 @@ RUN npm install
 # --- Stage 2: Builder ---
 FROM base AS builder
 COPY . .
-# Build the server (Next.js)
-RUN npx nx build server
+# Build the server (NestJS)
+RUN npx nx build nest-api
 # Build the client (Angular)
 RUN npx nx build client
 
-# --- Stage 3: Server Runtime (Next.js API) ---
+# --- Stage 3: Server Runtime (NestJS API) ---
 FROM node:20-alpine AS server
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copy standalone build assets
-COPY --from=builder /app/apps/server/.next/standalone ./
-COPY --from=builder /app/apps/server/.next/static ./apps/server/.next/static
-COPY --from=builder /app/apps/server/public ./apps/server/public
+# Copy built NestJS application
+COPY --from=builder /app/dist/apps/nest-api ./
+
+# Install production dependencies
+RUN npm install --omit=dev
 
 # Ensure the transcripts directory exists for persistence
-RUN mkdir -p /app/apps/server/transcripts
+RUN mkdir -p /app/transcripts
 
 EXPOSE 3000
-# The standalone build outputs server.js in the app root (relative to standalone folder)
-CMD ["node", "apps/server/server.js"]
+CMD ["node", "main.js"]
 
 # --- Stage 4: Client Runtime (Nginx) ---
 FROM nginx:alpine AS client
