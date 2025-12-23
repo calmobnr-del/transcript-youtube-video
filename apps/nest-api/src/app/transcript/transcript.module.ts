@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { TranscriptController } from './temp.controller';
+import { TranscriptController } from './transcript';
 import { TranscriptService } from './transcript.service';
 
 @Module({
