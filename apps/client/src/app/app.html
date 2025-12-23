@@ -8,8 +8,12 @@
             <div class="form-group">
                 <input type="text" id="url" [ngModel]="youtubeUrl()" (ngModelChange)="youtubeUrl.set($event)"
                     placeholder="Paste YouTube video link here..." [disabled]="status() === 'loading'">
-                <button (click)="fetchTranscript()" [disabled]="status() === 'loading'">
-                    {{ status() === 'loading' ? 'Processing...' : 'Get Transcript' }}
+                <button (click)="fetchVideo()" [disabled]="status() === 'loading' || !videoId()">
+                 Open video
+                </button>
+
+                <button (click)="removeVideo()" [disabled]="!videoId()">
+                 Remove video
                 </button>
             </div>
 
@@ -24,7 +28,7 @@
         </div>
 
         <div class="content-grid" [class.has-content]="videoId() || segments().length > 0">
-            <div class="video-section card" [class.hidden]="!videoId()">
+            <div class="video-section card" [class.hidden]="!title()">
                 <div class="video-wrapper">
                     <div id="youtube-player" class="youtube-player"></div>
                 </div>

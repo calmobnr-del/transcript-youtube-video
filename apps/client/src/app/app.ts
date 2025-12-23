@@ -43,19 +43,43 @@ export class App {
 
   videoId = computed(() => this.extractVideoId(this.youtubeUrl()));
 
-  constructor() {
-    this.loadYouTubeApi();
-
-    // Auto-fetch transcript when videoId changes and is valid
-    effect(() => {
-      const id = this.videoId();
+  fetchVideo() {
+     const id = this.videoId();
       if (id) {
         if (this.status() === 'idle') {
           this.fetchTranscript();
         }
         this.initPlayer(id);
       }
-    });
+  }
+
+  removeVideo() {
+    this.player?.destroy();
+    this.player = null;
+    this.status.set('idle');
+    this.message.set('');
+    this.title.set('');
+    this.fileName.set('');
+    this.segments.set([]);
+    this.currentTime.set(0);
+    this.saveStatus.set('idle');
+    this.saveMessage.set('');
+    this.youtubeUrl.set('');
+  }
+
+  constructor() {
+    this.loadYouTubeApi();
+
+    // Auto-fetch transcript when videoId changes and is valid
+    // effect(() => {
+    //   const id = this.videoId();
+    //   if (id) {
+    //     if (this.status() === 'idle') {
+    //       this.fetchTranscript();
+    //     }
+    //     this.initPlayer(id);
+    //   }
+    // });
 
     // Auto-scroll to active segment
     effect(() => {
