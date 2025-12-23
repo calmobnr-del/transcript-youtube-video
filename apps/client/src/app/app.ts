@@ -65,6 +65,8 @@ export class App {
     this.saveStatus.set('idle');
     this.saveMessage.set('');
     this.youtubeUrl.set('');
+    console.log('removeVideo');
+    
   }
 
   constructor() {
