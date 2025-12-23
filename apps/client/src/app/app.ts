@@ -163,7 +163,7 @@ export class App {
     this.segments.set([]);
     this.saveStatus.set('idle');
 
-    this.http.get<{ message: string; title: string; transcript: string; segments: TranscriptSegment[] }>(`/api/transcript?url=${encodeURIComponent(url)}`)
+    this.http.get<{ message: string; title: string; transcript: string; segments: TranscriptSegment[] }>(`/api/transcript1?url=${encodeURIComponent(url)}`)
       .pipe(
         catchError((err: { error?: { message?: string } }) => {
           this.status.set('error');
@@ -195,7 +195,7 @@ export class App {
     this.saveStatus.set('saving');
     this.saveMessage.set('Saving transcript...');
 
-    this.http.post<{ message: string; fileName: string }>('/api/transcript', { url, title, transcript })
+    this.http.post<{ message: string; fileName: string }>('/api/transcript1', { url, title, transcript })
       .pipe(
         catchError((err: { error?: { message?: string } }) => {
           this.saveStatus.set('error');
