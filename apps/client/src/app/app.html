@@ -15,6 +15,7 @@
                 <button (click)="removeVideo()" [disabled]="!videoId()">
                  Remove video
                 </button>
+                <button (click)="sayJoke()">Say Joke</button>
             </div>
 
             @if (status() !== 'idle') {

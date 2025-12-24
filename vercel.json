@@ -19,6 +19,9 @@
       "dest": "apps/nest-api/src/vercel.ts"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
