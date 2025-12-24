@@ -4,7 +4,8 @@ import {
   Logger,
   BadRequestException,
 } from '@nestjs/common';
-import { getSubtitles } from 'youtube-caption-extractor'; // <--- BACK TO YOUR ORIGINAL LIB
+import { getSubtitles } from 'youtube-caption-extractor'; // Method A (Your favorite)
+import { YoutubeTranscript } from 'youtube-transcript'; // Method B (Fallback)
 import * as fs from 'fs-extra';
 import * as path from 'path';
 
@@ -29,55 +30,80 @@ export class TranscriptService {
       throw new BadRequestException('URL is required');
     }
 
-    try {
-      this.logger.log(`Fetching transcript for URL: ${url}`);
-
-      // 1. Extract Video ID manually (Avoids ytdl-core 410 crash)
-      const videoId = this.extractVideoId(url);
-      if (!videoId) {
-        throw new BadRequestException('Invalid YouTube URL');
-      }
-
-      // 2. Fetch transcript using your original library
-      // We explicitly ask for English ('en') to match your original success
-      const transcript = await getSubtitles({ videoID: videoId, lang: 'en' });
-
-      this.logger.log(`Fetched transcript segments: ${transcript.length}`);
-
-      if (!transcript || transcript.length === 0) {
-        this.logger.warn(
-          'Transcript array is empty. Video might not have English captions.',
-        );
-      }
-
-      // 3. Process text
-      const transcriptText = transcript.map((t) => t.text).join('\n');
-
-      // 4. Safe Title (We cannot fetch the real title without ytdl, so we use the ID)
-      const safeTitle = `Video_${videoId}`;
-
-      return {
-        message: 'Transcript fetched successfully',
-        title: safeTitle,
-        transcript: transcriptText,
-        segments: transcript, // This returns the array structure you wanted
-      };
-    } catch (error) {
-      this.logger.error('Error fetching transcript:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-
-      if (errorMessage.includes('429') || errorMessage.includes('410')) {
-        throw new InternalServerErrorException(
-          'YouTube has blocked the request from this IP.',
-        );
-      }
-
-      throw new InternalServerErrorException({
-        message: 'Error fetching transcript',
-        error: errorMessage,
-      });
+    const videoId = this.extractVideoId(url);
+    if (!videoId) {
+      throw new BadRequestException('Invalid YouTube URL');
     }
+
+    this.logger.log(`Fetching transcript for URL: ${url} (ID: ${videoId})`);
+
+    // We cannot reliably get the Title without ytdl (which crashes), so we use ID.
+    const safeTitle = `Video_${videoId}`;
+    let finalSegments: any[] = [];
+
+    // --- STRATEGY 1: youtube-caption-extractor (Works best Locally) ---
+    try {
+      this.logger.log('Attempting Strategy 1: youtube-caption-extractor');
+      const segments = await getSubtitles({ videoID: videoId, lang: 'en' });
+
+      if (segments && segments.length > 0) {
+        this.logger.log(
+          `Strategy 1 success! Found ${segments.length} segments.`,
+        );
+        finalSegments = segments;
+      } else {
+        this.logger.warn(
+          'Strategy 1 returned empty segments. Switching to fallback...',
+        );
+      }
+    } catch (error) {
+      this.logger.warn(
+        `Strategy 1 failed: ${error.message}. Switching to fallback...`,
+      );
+    }
+
+    // --- STRATEGY 2: youtube-transcript (Backup for Vercel/Blocking) ---
+    if (finalSegments.length === 0) {
+      try {
+        this.logger.log('Attempting Strategy 2: youtube-transcript');
+        const segments = await YoutubeTranscript.fetchTranscript(videoId);
+
+        if (segments && segments.length > 0) {
+          this.logger.log(
+            `Strategy 2 success! Found ${segments.length} segments.`,
+          );
+          // Map to your preferred format if necessary
+          finalSegments = segments.map((s) => ({
+            start: (s.offset / 1000).toString(),
+            dur: (s.duration / 1000).toString(),
+            text: s.text,
+          }));
+        }
+      } catch (error) {
+        this.logger.error(`Strategy 2 failed: ${error.message}`);
+      }
+    }
+
+    // --- FINAL RESULT CHECK ---
+    if (finalSegments.length === 0) {
+      // If both failed, it's likely a hard IP block or no captions exist.
+      return {
+        message:
+          'No transcript available (IP might be blocked or no captions found)',
+        title: safeTitle,
+        transcript: '',
+        segments: [],
+      };
+    }
+
+    const transcriptText = finalSegments.map((t) => t.text).join(' ');
+
+    return {
+      message: 'Transcript fetched successfully',
+      title: safeTitle,
+      transcript: transcriptText,
+      segments: finalSegments,
+    };
   }
 
   async saveTranscript(
@@ -104,16 +130,12 @@ export class TranscriptService {
       };
     } catch (error) {
       this.logger.error('Error saving transcript:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
       throw new InternalServerErrorException({
         message: 'Error saving transcript',
-        error: errorMessage,
       });
     }
   }
 
-  // Helper to get ID without ytdl
   private extractVideoId(url: string): string | null {
     const regExp =
       /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
