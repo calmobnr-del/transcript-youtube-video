@@ -21,11 +21,14 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
+# Copy package.json and package-lock.json from the 'base' stage
+COPY --from=base /app/package*.json ./
+
+# Install production dependencies FIRST
+RUN npm install --omit=dev
+
 # Copy built NestJS application
 COPY --from=builder /app/dist/apps/nest-api ./
-
-# Install production dependencies
-RUN npm install --omit=dev
 
 # Ensure the transcripts directory exists for persistence
 RUN mkdir -p /app/transcripts
