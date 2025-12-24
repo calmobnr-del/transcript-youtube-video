@@ -8,7 +8,7 @@
   plan: free
   envVars:
     - key: BACKEND_URL
-      value: https://youtube-transcript-server.onrender.com/api
+      value: https://youtube-transcript-server.onrender.com
     - key: PORT
       value: 80 # Render will override this, but it helps local debugging
 
