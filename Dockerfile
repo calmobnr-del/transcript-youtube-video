@@ -21,13 +21,11 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copy package.json and package-lock.json from the 'base' stage
-COPY --from=base /app/package*.json ./
-
-# Install production dependencies FIRST
+# Copy the optimized package.json from the build output and install only the exact dependencies needed.
+COPY --from=builder /app/dist/apps/nest-api/package.json .
 RUN npm install --omit=dev
 
-# Copy built NestJS application
+# Now copy the rest of the built application
 COPY --from=builder /app/dist/apps/nest-api ./
 
 # Ensure the transcripts directory exists for persistence
