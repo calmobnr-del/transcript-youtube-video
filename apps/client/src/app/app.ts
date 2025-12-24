@@ -231,4 +231,19 @@ export class App {
       });
     }
   }
+
+  sayJoke() {
+    this.http.get<{ joke: string }>('/api/joke')
+      .pipe(
+        catchError(() => {
+          alert('Failed to fetch a joke.');
+          return of(null);
+        })
+      )
+      .subscribe((res) => {
+        if (res) {
+          alert(res.joke);
+        }
+      });
+  }
 }
