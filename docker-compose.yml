@@ -18,5 +18,5 @@ services:
     depends_on:
       - youtube-transcript-server
     environment:
-      - BACKEND_URL=http://youtube-transcript-server:3000/api
+      - BACKEND_URL=http://youtube-transcript-server:3000
     restart: unless-stopped
