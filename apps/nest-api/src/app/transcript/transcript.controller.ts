@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { TranscriptService, TranscriptResponse, SaveTranscriptResponse } from './transcript.service';
 
-@Controller('transcript1')
+@Controller('transcript')
 export class TranscriptController {
   constructor(private readonly transcriptService: TranscriptService) {}
 
