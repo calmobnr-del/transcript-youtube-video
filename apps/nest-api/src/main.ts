@@ -16,6 +16,17 @@ async function bootstrap() {
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
   const port = process.env.PORT || 3000;
+
+  // Middleware to remove trailing slashes from requests
+  app.use((req: any, res: any, next: () => void) => {
+    if (req.path.length > 1 && req.path.endsWith('/')) {
+      const query = req.url.slice(req.path.length);
+      const newPath = req.path.slice(0, -1);
+      res.redirect(301, newPath + query);
+    } else {
+      next();
+    }
+  });
   
   // Debug logging
   app.use((req, res, next) => {
