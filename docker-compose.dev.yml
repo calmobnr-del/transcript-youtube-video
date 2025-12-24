@@ -1,0 +1,20 @@
+# Development-specific Docker Compose overrides
+services:
+  youtube-transcript-server:
+    # Build from the 'base' stage which has all devDependencies installed
+    build:
+      context: .
+      target: base
+    # Override the command to run the dev server with file watching
+    command: npm run server:dev -- --host=0.0.0.0
+    ports:
+      - "3000:3000" # NestJS port
+      - "4201:4201" # Nx internal port for daemon communication
+    volumes:
+      # Mount source code for hot-reloading
+      - .:/app
+      # Anonymous volume to prevent host node_modules from overwriting container's
+      - /app/node_modules
+      # Mount transcripts directory
+      - ./transcripts:/app/transcripts
+    restart: unless-stopped
